@@ -1,0 +1,365 @@
+"use strict";
+/**
+ * Application Configuration
+ * Centralized configuration management for FanzMoneyDash
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.config = void 0;
+exports.getConfig = getConfig;
+exports.isFeatureEnabled = isFeatureEnabled;
+exports.isProduction = isProduction;
+exports.isDevelopment = isDevelopment;
+exports.isTest = isTest;
+exports.getDatabaseConfig = getDatabaseConfig;
+exports.getRedisConfig = getRedisConfig;
+exports.getSecurityConfig = getSecurityConfig;
+exports.getFraudConfig = getFraudConfig;
+exports.getPaymentProcessorConfig = getPaymentProcessorConfig;
+exports.getPayoutProviderConfig = getPayoutProviderConfig;
+const logger_1 = require("../utils/logger");
+const logger = new logger_1.Logger('AppConfig');
+/**
+ * Load and validate configuration from environment variables
+ */
+function loadConfig() {
+    const env = process.env.NODE_ENV || 'development';
+    return {
+        // Environment
+        env,
+        port: parseInt(process.env.PORT || '3000'),
+        host: process.env.HOST || '0.0.0.0',
+        nodeEnv: process.env.NODE_ENV || 'development',
+        // Security
+        security: {
+            jwtSecret: getRequiredEnv('JWT_SECRET'),
+            jwtExpiresIn: process.env.JWT_EXPIRES_IN || '24h',
+            jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
+            bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS || '12'),
+            corsOrigins: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'],
+            rateLimitMax: parseInt(process.env.RATE_LIMIT_MAX || '100'),
+            rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes
+            csrfEnabled: process.env.CSRF_ENABLED === 'true',
+            helmetEnabled: process.env.HELMET_ENABLED !== 'false',
+        },
+        // Database
+        database: {
+            url: process.env.DATABASE_URL,
+            host: process.env.DB_HOST || 'localhost',
+            port: parseInt(process.env.DB_PORT || '5432'),
+            name: process.env.DB_NAME || 'fanzmoney',
+            user: process.env.DB_USER || 'postgres',
+            password: process.env.DB_PASSWORD || '',
+            ssl: process.env.DATABASE_SSL === 'true' || env === 'production',
+            poolSize: parseInt(process.env.DATABASE_POOL_SIZE || '20'),
+            connectionTimeout: parseInt(process.env.DATABASE_TIMEOUT || '30000'),
+            queryTimeout: parseInt(process.env.DATABASE_QUERY_TIMEOUT || '60000'),
+        },
+        // Redis
+        redis: {
+            url: process.env.REDIS_URL,
+            host: process.env.REDIS_HOST || 'localhost',
+            port: parseInt(process.env.REDIS_PORT || '6379'),
+            password: process.env.REDIS_PASSWORD,
+            db: parseInt(process.env.REDIS_DB || '0'),
+            prefix: process.env.REDIS_PREFIX || 'fanzmoney:',
+            ttl: parseInt(process.env.REDIS_TTL || '3600'), // 1 hour default
+        },
+        // External Services
+        services: {
+            fanzDash: {
+                baseUrl: getRequiredEnv('FANZDASH_BASE_URL'),
+                apiKey: getRequiredEnv('FANZDASH_API_KEY'),
+                timeout: parseInt(process.env.FANZDASH_TIMEOUT || '30000'),
+            },
+            paymentProcessors: {
+                rocketgate: {
+                    merchantId: getRequiredEnv('ROCKETGATE_MERCHANT_ID'),
+                    merchantPassword: getRequiredEnv('ROCKETGATE_MERCHANT_PASSWORD'),
+                    apiUrl: process.env.ROCKETGATE_API_URL || 'https://gateway.rocketgate.com',
+                    testMode: process.env.ROCKETGATE_TEST_MODE === 'true',
+                },
+                segpay: {
+                    packageId: getRequiredEnv('SEGPAY_PACKAGE_ID'),
+                    merchantId: getRequiredEnv('SEGPAY_MERCHANT_ID'),
+                    apiKey: getRequiredEnv('SEGPAY_API_KEY'),
+                    apiUrl: process.env.SEGPAY_API_URL || 'https://api.segpay.com',
+                    testMode: process.env.SEGPAY_TEST_MODE === 'true',
+                },
+                ccbill: {
+                    accountNumber: getRequiredEnv('CCBILL_ACCOUNT_NUMBER'),
+                    subAccountNumber: getRequiredEnv('CCBILL_SUBACCOUNT_NUMBER'),
+                    flexformsId: getRequiredEnv('CCBILL_FLEXFORMS_ID'),
+                    saltKey: getRequiredEnv('CCBILL_SALT_KEY'),
+                    apiUrl: process.env.CCBILL_API_URL || 'https://api.ccbill.com',
+                    testMode: process.env.CCBILL_TEST_MODE === 'true',
+                },
+                epoch: {
+                    memberId: getRequiredEnv('EPOCH_MEMBER_ID'),
+                    classId: getRequiredEnv('EPOCH_CLASS_ID'),
+                    keyId: getRequiredEnv('EPOCH_KEY_ID'),
+                    key: getRequiredEnv('EPOCH_KEY'),
+                    apiUrl: process.env.EPOCH_API_URL || 'https://epoch.com',
+                    testMode: process.env.EPOCH_TEST_MODE === 'true',
+                },
+                bitpay: {
+                    apiKey: getRequiredEnv('BITPAY_API_KEY'),
+                    apiSecret: getRequiredEnv('BITPAY_API_SECRET'),
+                    apiUrl: process.env.BITPAY_API_URL || 'https://bitpay.com/api',
+                    testMode: process.env.BITPAY_TEST_MODE === 'true',
+                },
+                coinbase: {
+                    apiKey: getRequiredEnv('COINBASE_API_KEY'),
+                    webhookSecret: getRequiredEnv('COINBASE_WEBHOOK_SECRET'),
+                    apiUrl: process.env.COINBASE_API_URL || 'https://api.commerce.coinbase.com',
+                    testMode: process.env.COINBASE_TEST_MODE === 'true',
+                },
+            },
+            payoutProviders: {
+                paxum: {
+                    apiKey: getRequiredEnv('PAXUM_API_KEY'),
+                    apiSecret: getRequiredEnv('PAXUM_API_SECRET'),
+                    apiUrl: process.env.PAXUM_API_URL || 'https://www.paxum.com/payment/api',
+                    testMode: process.env.PAXUM_TEST_MODE === 'true',
+                },
+                wise: {
+                    apiKey: getRequiredEnv('WISE_API_KEY'),
+                    profileId: getRequiredEnv('WISE_PROFILE_ID'),
+                    apiUrl: process.env.WISE_API_URL || 'https://api.wise.com',
+                    testMode: process.env.WISE_TEST_MODE === 'true',
+                },
+                payoneer: {
+                    username: getRequiredEnv('PAYONEER_USERNAME'),
+                    password: getRequiredEnv('PAYONEER_PASSWORD'),
+                    partnerId: getRequiredEnv('PAYONEER_PARTNER_ID'),
+                    apiUrl: process.env.PAYONEER_API_URL || 'https://api.sandbox.payoneer.com',
+                    testMode: process.env.PAYONEER_TEST_MODE === 'true',
+                },
+                cryptoPayouts: {
+                    enabled: process.env.CRYPTO_PAYOUTS_ENABLED === 'true',
+                    btcAddress: process.env.CRYPTO_BTC_ADDRESS,
+                    ethAddress: process.env.CRYPTO_ETH_ADDRESS,
+                    usdtAddress: process.env.CRYPTO_USDT_ADDRESS,
+                    testMode: process.env.CRYPTO_TEST_MODE === 'true',
+                },
+            },
+        },
+        // Features
+        features: {
+            autoRefunds: process.env.FEATURE_AUTO_REFUNDS !== 'false',
+            manualReview: process.env.FEATURE_MANUAL_REVIEW !== 'false',
+            cryptoPayments: process.env.FEATURE_CRYPTO_PAYMENTS === 'true',
+            multiCurrencySupport: process.env.FEATURE_MULTI_CURRENCY === 'true',
+            fraudDetection: process.env.FEATURE_FRAUD_DETECTION !== 'false',
+            realTimeNotifications: process.env.FEATURE_REALTIME_NOTIFICATIONS !== 'false',
+            auditLogging: process.env.FEATURE_AUDIT_LOGGING !== 'false',
+            performanceMonitoring: process.env.FEATURE_PERFORMANCE_MONITORING !== 'false',
+        },
+        // Fraud Detection
+        fraud: {
+            enabled: process.env.FRAUD_DETECTION_ENABLED !== 'false',
+            riskThresholds: {
+                low: parseFloat(process.env.FRAUD_THRESHOLD_LOW || '0.3'),
+                medium: parseFloat(process.env.FRAUD_THRESHOLD_MEDIUM || '0.6'),
+                high: parseFloat(process.env.FRAUD_THRESHOLD_HIGH || '0.8'),
+            },
+            autoRejectThreshold: parseFloat(process.env.FRAUD_AUTO_REJECT_THRESHOLD || '0.9'),
+            autoApproveThreshold: parseFloat(process.env.FRAUD_AUTO_APPROVE_THRESHOLD || '0.2'),
+            velocityLimits: {
+                transactions: parseInt(process.env.FRAUD_VELOCITY_TRANSACTIONS || '10'),
+                amount: parseFloat(process.env.FRAUD_VELOCITY_AMOUNT || '1000'),
+                timeWindow: parseInt(process.env.FRAUD_VELOCITY_WINDOW || '3600'), // 1 hour
+            },
+            geoBlocking: {
+                enabled: process.env.FRAUD_GEO_BLOCKING_ENABLED === 'true',
+                blockedCountries: process.env.FRAUD_BLOCKED_COUNTRIES?.split(',') || [],
+                allowedCountries: process.env.FRAUD_ALLOWED_COUNTRIES?.split(',') || [],
+            },
+            ipFiltering: {
+                enabled: process.env.FRAUD_IP_FILTERING_ENABLED === 'true',
+                blacklist: process.env.FRAUD_IP_BLACKLIST?.split(',') || [],
+                whitelist: process.env.FRAUD_IP_WHITELIST?.split(',') || [],
+            },
+        },
+        // Notification Services
+        notifications: {
+            email: {
+                enabled: process.env.EMAIL_ENABLED === 'true',
+                provider: process.env.EMAIL_PROVIDER || 'sendgrid',
+                apiKey: process.env.EMAIL_API_KEY,
+                fromEmail: process.env.EMAIL_FROM || 'noreply@fanzmoney.com',
+                fromName: process.env.EMAIL_FROM_NAME || 'FanzMoneyDash',
+            },
+            sms: {
+                enabled: process.env.SMS_ENABLED === 'true',
+                provider: process.env.SMS_PROVIDER || 'twilio',
+                apiKey: process.env.SMS_API_KEY,
+                apiSecret: process.env.SMS_API_SECRET,
+                fromNumber: process.env.SMS_FROM_NUMBER,
+            },
+            webhook: {
+                enabled: process.env.WEBHOOK_ENABLED !== 'false',
+                endpoints: process.env.WEBHOOK_ENDPOINTS?.split(',') || [],
+                retryAttempts: parseInt(process.env.WEBHOOK_RETRY_ATTEMPTS || '3'),
+                retryDelay: parseInt(process.env.WEBHOOK_RETRY_DELAY || '5000'),
+            },
+        },
+        // Logging
+        logging: {
+            level: process.env.LOG_LEVEL || 'info',
+            enableConsole: process.env.LOG_CONSOLE !== 'false',
+            enableFile: process.env.LOG_FILE === 'true',
+            fileConfig: {
+                filename: process.env.LOG_FILENAME || 'fanzmoney.log',
+                maxsize: parseInt(process.env.LOG_MAX_SIZE || '10485760'), // 10MB
+                maxFiles: parseInt(process.env.LOG_MAX_FILES || '5'),
+            },
+            enableElasticsearch: process.env.LOG_ELASTICSEARCH === 'true',
+            elasticsearchConfig: process.env.LOG_ELASTICSEARCH === 'true' ? {
+                node: getRequiredEnv('ELASTICSEARCH_NODE'),
+                index: process.env.ELASTICSEARCH_INDEX || 'fanzmoney-logs',
+            } : undefined,
+        },
+        // Monitoring
+        monitoring: {
+            healthCheck: {
+                enabled: process.env.HEALTH_CHECK_ENABLED !== 'false',
+                interval: parseInt(process.env.HEALTH_CHECK_INTERVAL || '30000'), // 30 seconds
+                timeout: parseInt(process.env.HEALTH_CHECK_TIMEOUT || '5000'),
+            },
+            metrics: {
+                enabled: process.env.METRICS_ENABLED !== 'false',
+                prometheus: {
+                    enabled: process.env.PROMETHEUS_ENABLED === 'true',
+                    port: parseInt(process.env.PROMETHEUS_PORT || '9090'),
+                },
+            },
+            tracing: {
+                enabled: process.env.TRACING_ENABLED === 'true',
+                jaegerEndpoint: process.env.JAEGER_ENDPOINT,
+            },
+        },
+    };
+}
+/**
+ * Get required environment variable
+ */
+function getRequiredEnv(key) {
+    const value = process.env[key];
+    if (!value) {
+        throw new Error(`Missing required environment variable: ${key}`);
+    }
+    return value;
+}
+/**
+ * Validate configuration
+ */
+function validateConfig(config) {
+    const errors = [];
+    // Validate port
+    if (config.port < 1 || config.port > 65535) {
+        errors.push('Port must be between 1 and 65535');
+    }
+    // Validate JWT secret
+    if (config.security.jwtSecret.length < 32) {
+        errors.push('JWT secret must be at least 32 characters long');
+    }
+    // Validate fraud thresholds
+    if (config.fraud.riskThresholds.low >= config.fraud.riskThresholds.medium) {
+        errors.push('Low fraud threshold must be less than medium threshold');
+    }
+    if (config.fraud.riskThresholds.medium >= config.fraud.riskThresholds.high) {
+        errors.push('Medium fraud threshold must be less than high threshold');
+    }
+    // Validate database configuration
+    if (!config.database.url && (!config.database.host || !config.database.name)) {
+        errors.push('Either DATABASE_URL or DB_HOST and DB_NAME must be provided');
+    }
+    // Validate Redis configuration
+    if (!config.redis.url && !config.redis.host) {
+        errors.push('Either REDIS_URL or REDIS_HOST must be provided');
+    }
+    if (errors.length > 0) {
+        logger.error('Configuration validation failed:', { errors });
+        throw new Error(`Configuration validation failed: ${errors.join(', ')}`);
+    }
+}
+/**
+ * Load and cache configuration
+ */
+let cachedConfig = null;
+function getConfig() {
+    if (!cachedConfig) {
+        logger.info('Loading application configuration...');
+        cachedConfig = loadConfig();
+        validateConfig(cachedConfig);
+        logger.info('✅ Configuration loaded successfully', {
+            env: cachedConfig.env,
+            port: cachedConfig.port,
+            features: Object.keys(cachedConfig.features).filter(key => cachedConfig.features[key]),
+        });
+    }
+    return cachedConfig;
+}
+/**
+ * Check if feature is enabled
+ */
+function isFeatureEnabled(feature) {
+    return getConfig().features[feature];
+}
+/**
+ * Check if environment is production
+ */
+function isProduction() {
+    return getConfig().env === 'production';
+}
+/**
+ * Check if environment is development
+ */
+function isDevelopment() {
+    return getConfig().env === 'development';
+}
+/**
+ * Check if environment is test
+ */
+function isTest() {
+    return getConfig().env === 'test';
+}
+/**
+ * Get database configuration
+ */
+function getDatabaseConfig() {
+    return getConfig().database;
+}
+/**
+ * Get Redis configuration
+ */
+function getRedisConfig() {
+    return getConfig().redis;
+}
+/**
+ * Get security configuration
+ */
+function getSecurityConfig() {
+    return getConfig().security;
+}
+/**
+ * Get fraud detection configuration
+ */
+function getFraudConfig() {
+    return getConfig().fraud;
+}
+/**
+ * Get payment processor configuration
+ */
+function getPaymentProcessorConfig(processor) {
+    return getConfig().services.paymentProcessors[processor];
+}
+/**
+ * Get payout provider configuration
+ */
+function getPayoutProviderConfig(provider) {
+    return getConfig().services.payoutProviders[provider];
+}
+// Export the configuration
+exports.config = getConfig();
+//# sourceMappingURL=app.js.map
