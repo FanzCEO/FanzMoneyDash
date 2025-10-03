@@ -27,6 +27,7 @@ import { FraudDetectionService } from './services/fraud-detection';
 import { NFTMarketplaceService } from './services/nft-marketplace';
 import { ComplianceEngine } from './services/compliance-engine';
 import { MobileSDK } from './services/mobile-sdk';
+import { AdvancedSecurityService } from './services/advanced-security';
 
 class FanzMoneyDashApp {
   private app: express.Application;
@@ -45,6 +46,7 @@ class FanzMoneyDashApp {
   private nftMarketplace: NFTMarketplaceService;
   private complianceEngine: ComplianceEngine;
   private mobileSDK: MobileSDK;
+  private advancedSecurity: AdvancedSecurityService;
 
   constructor() {
     this.app = express();
@@ -233,6 +235,13 @@ class FanzMoneyDashApp {
       );
       this.logger.info('✅ Mobile SDK initialized');
 
+      // Initialize advanced security service
+      this.advancedSecurity = new AdvancedSecurityService(
+        this.database,
+        this.redis
+      );
+      this.logger.info('✅ Advanced Security Service initialized');
+
       this.logger.info('🎉 All advanced services initialized successfully');
 
     } catch (error) {
@@ -259,7 +268,8 @@ class FanzMoneyDashApp {
           nftMarketplace: 'active',
           realTimeAnalytics: 'active',
           complianceEngine: 'active',
-          mobileSDK: 'active'
+          mobileSDK: 'active',
+          advancedSecurity: 'active'
         }
       });
     });
@@ -277,7 +287,11 @@ class FanzMoneyDashApp {
           'Blockchain NFT Marketplace',
           'Cross-platform Payment Processing',
           'Creator Financial Assistant',
-          'Automated Compliance Engine'
+          'Automated Compliance Engine',
+          'Cross-platform Mobile SDK',
+          'Real-time Creator Collaboration',
+          'Zero-trust Security Architecture',
+          'Quantum-resistant Encryption'
         ],
         platforms: ['BoyFanz', 'GirlFanz', 'PupFanz'],
         documentation: '/docs'
@@ -301,6 +315,9 @@ class FanzMoneyDashApp {
 
     // Mobile SDK API
     this.app.use('/api/v1/mobile', authMiddleware, this.createMobileRoutes());
+
+    // Advanced Security API
+    this.app.use('/api/v1/security', authMiddleware, this.createSecurityRoutes());
 
     // WebSocket endpoint info
     this.app.get('/api/v1/websocket', (req, res) => {
@@ -331,7 +348,8 @@ class FanzMoneyDashApp {
           'POST /api/v1/fraud/*',
           'POST /api/v1/nft/*',
           'POST /api/v1/compliance/*',
-          'POST /api/v1/mobile/*'
+          'POST /api/v1/mobile/*',
+          'POST /api/v1/security/*'
         ]
       });
     });
@@ -563,6 +581,72 @@ class FanzMoneyDashApp {
   }
 
   /**
+   * Create advanced security routes
+   */
+  private createSecurityRoutes(): express.Router {
+    const router = express.Router();
+
+    router.post('/verify-access', async (req, res) => {
+      try {
+        const result = await this.advancedSecurity.verifyZeroTrustAccess(req.body);
+        res.json(result);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    router.post('/encrypt', async (req, res) => {
+      try {
+        const { data, keyId } = req.body;
+        const result = await this.advancedSecurity.encryptSensitiveData(data, keyId);
+        res.json(result);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    router.post('/decrypt', async (req, res) => {
+      try {
+        const { encryptedData, keyId } = req.body;
+        const result = await this.advancedSecurity.decryptSensitiveData(encryptedData, keyId);
+        res.json({ data: result });
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    router.post('/analyze-threat', async (req, res) => {
+      try {
+        const result = await this.advancedSecurity.analyzeSecurityThreat(req.body);
+        res.json(result);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    router.post('/fingerprint', async (req, res) => {
+      try {
+        const result = await this.advancedSecurity.generateDeviceFingerprint(req.body);
+        res.json(result);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    router.get('/dashboard', async (req, res) => {
+      try {
+        const timeframe = req.query.timeframe as any || '24h';
+        const result = await this.advancedSecurity.getSecurityDashboard(timeframe);
+        res.json(result);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    return router;
+  }
+
+  /**
    * Global error handler
    */
   private errorHandler(error: Error, req: express.Request, res: express.Response, next: express.NextFunction): void {
@@ -617,6 +701,10 @@ class FanzMoneyDashApp {
 
           if (this.mobileSDK) {
             await this.mobileSDK.shutdown();
+          }
+
+          if (this.advancedSecurity) {
+            await this.advancedSecurity.shutdown();
           }
 
           // Close database connections
