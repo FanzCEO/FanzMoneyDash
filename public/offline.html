@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FANZ Money Dash - Offline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0B0B10 0%, #12121A 100%);
+            color: #FFFFFF;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .offline-container {
+            text-align: center;
+            max-width: 500px;
+            padding: 40px;
+            background: rgba(18, 18, 26, 0.8);
+            border-radius: 16px;
+            border: 1px solid rgba(124, 77, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #7C4DFF, #00D1FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .offline-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.6;
+        }
+        
+        .offline-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #FFFFFF;
+        }
+        
+        .offline-message {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.72);
+            margin-bottom: 32px;
+        }
+        
+        .retry-button {
+            background: linear-gradient(135deg, #7C4DFF, #5A2DFF);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 8px;
+        }
+        
+        .retry-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(124, 77, 255, 0.3);
+        }
+        
+        .offline-features {
+            margin-top: 32px;
+            padding-top: 32px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+        
+        .feature-item {
+            padding: 16px;
+            background: rgba(124, 77, 255, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(124, 77, 255, 0.2);
+        }
+        
+        .feature-icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+        
+        .feature-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .feature-desc {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        @media (max-width: 640px) {
+            .offline-container {
+                padding: 24px;
+            }
+            
+            .logo {
+                font-size: 1.5rem;
+            }
+            
+            .offline-title {
+                font-size: 1.25rem;
+            }
+            
+            .feature-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="logo">FANZ Money Dash</div>
+        
+        <div class="offline-icon">📱</div>
+        
+        <h1 class="offline-title">You're Offline</h1>
+        
+        <p class="offline-message">
+            Your internet connection seems to be down, but don't worry! FANZ Money Dash works offline too. 
+            Some features are still available while you're disconnected.
+        </p>
+        
+        <button class="retry-button" onclick="window.location.reload()">
+            🔄 Try Again
+        </button>
+        
+        <button class="retry-button" onclick="goHome()">
+            🏠 Go Home
+        </button>
+        
+        <div class="offline-features">
+            <h2 style="margin-bottom: 16px; color: rgba(255, 255, 255, 0.9);">Available Offline</h2>
+            
+            <div class="feature-list">
+                <div class="feature-item">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-title">Cached Analytics</div>
+                    <div class="feature-desc">View your recently loaded financial insights and reports</div>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">🔗</div>
+                    <div class="feature-title">Blockchain Data</div>
+                    <div class="feature-desc">Access cached transaction history and wallet information</div>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">⚖️</div>
+                    <div class="feature-title">Compliance Tools</div>
+                    <div class="feature-desc">Use offline tax calculators and view saved reports</div>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">📱</div>
+                    <div class="feature-title">PWA Features</div>
+                    <div class="feature-desc">Full app experience with cached interface and data</div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); font-size: 0.875rem; color: rgba(255, 255, 255, 0.5);">
+            <p>💡 Data will sync automatically when you're back online</p>
+        </div>
+    </div>
+
+    <script>
+        function goHome() {
+            window.location.href = '/';
+        }
+        
+        // Auto-retry when online
+        window.addEventListener('online', () => {
+            console.log('🌐 Back online! Reloading...');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        });
+        
+        // Show connection status
+        if (!navigator.onLine) {
+            console.log('📱 Operating in offline mode');
+        }
+        
+        // Service worker messaging
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'FINANCIAL_DATA_SYNC') {
+                    console.log('💰 Financial data synced in background');
+                    // Show notification or update UI
+                }
+            });
+        }
+    </script>
+</body>
+</html>
