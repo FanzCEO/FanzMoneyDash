@@ -1,5 +1,5 @@
 # Multi-stage build for production-optimized FANZ MoneyDash
-FROM node:20-alpine AS builder
+FROM node:20.18.0-alpine AS builder
 
 # Set working directory
 WORKDIR /app
@@ -20,7 +20,7 @@ COPY . .
 RUN npm run build 2>/dev/null || echo "No build script found"
 
 # Production stage
-FROM node:20-alpine AS production
+FROM node:20.18.0-alpine AS production
 
 # Install security updates and required packages
 RUN apk update && apk upgrade && \
