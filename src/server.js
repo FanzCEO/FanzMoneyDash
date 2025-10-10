@@ -23,6 +23,7 @@ import blockchainRoutes from './routes/blockchain.js';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
 import transactionRoutes from './routes/transactions.js';
+import integrationRoutes from './routes/integrations.js';
 import websocketHandler from './websocket/handler.js';
 
 // Import middleware
@@ -126,6 +127,7 @@ app.use('/api/transactions', authMiddleware, transactionRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/compliance', complianceRoutes);
 app.use('/api/blockchain', blockchainRoutes);
+app.use('/api/integrations', integrationRoutes);
 
 // WebSocket handling
 websocketHandler(io);
