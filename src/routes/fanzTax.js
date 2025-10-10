@@ -70,14 +70,57 @@ const SUPPORTED_PROCESSORS = Object.keys(fanzTaxService.supportedProcessors);
 SUPPORTED_PROCESSORS.forEach(processorId => {
   router.post(`/webhooks/${processorId}`, [
     webhookRateLimit,
-    // Add webhook signature validation middleware here
+    // Webhook signature validation middleware
     body().custom((value, { req }) => {
-      // Validate webhook signature to prevent unauthorized requests
       const signature = req.get('x-webhook-signature') || req.get('x-hub-signature-256');
+      const timestamp = req.get('x-webhook-timestamp');
+      
       if (!signature) {
         throw new Error('Missing webhook signature');
       }
-      // TODO: Implement proper webhook signature validation
+      
+      if (!timestamp) {
+        throw new Error('Missing webhook timestamp');
+      }
+      
+      // Check timestamp to prevent replay attacks (within 5 minutes)
+      const webhookTime = parseInt(timestamp, 10);
+      const currentTime = Math.floor(Date.now() / 1000);
+      const timeDiff = Math.abs(currentTime - webhookTime);
+      
+      if (timeDiff > 300) { // 5 minutes
+        throw new Error('Webhook timestamp too old');
+      }
+      
+      // Get webhook secret for this processor
+      const webhookSecret = process.env[`WEBHOOK_SECRET_${processorId.toUpperCase()}`] || 
+                           process.env.WEBHOOK_SECRET;
+      
+      if (!webhookSecret) {
+        throw new Error('Webhook secret not configured');
+      }
+      
+      // Verify HMAC signature
+      const crypto = await import('crypto');
+      const payload = JSON.stringify(req.body);
+      const expectedSignature = crypto.createHmac('sha256', webhookSecret)
+        .update(timestamp + payload)
+        .digest('hex');
+      
+      const receivedSignature = signature.replace(/^(sha256=|whsec_)/, '');
+      
+      // Use timing-safe comparison
+      const expectedBuffer = Buffer.from(expectedSignature, 'hex');
+      const receivedBuffer = Buffer.from(receivedSignature, 'hex');
+      
+      if (expectedBuffer.length !== receivedBuffer.length) {
+        throw new Error('Invalid webhook signature');
+      }
+      
+      if (!crypto.timingSafeEqual(expectedBuffer, receivedBuffer)) {
+        throw new Error('Invalid webhook signature');
+      }
+      
       return true;
     })
   ], async (req, res) => {
@@ -144,7 +187,25 @@ SUPPORTED_PROCESSORS.forEach(processorId => {
 if (process.env.NODE_ENV === 'development') {
   router.post('/webhooks/test', [
     authMiddleware, // Require authentication even for test endpoint
-    body().isObject().withMessage('Request body must be an object')
+    body().isObject().withMessage('Request body must be an object'),
+    // Optional signature validation for test endpoint
+    body().custom((value, { req }) => {
+      const signature = req.get('x-webhook-signature');
+      if (signature && process.env.WEBHOOK_SECRET) {
+        const crypto = require('crypto');
+        const payload = JSON.stringify(req.body);
+        const expectedSignature = crypto.createHmac('sha256', process.env.WEBHOOK_SECRET)
+          .update(payload)
+          .digest('hex');
+        
+        const receivedSignature = signature.replace('sha256=', '');
+        
+        if (!crypto.timingSafeEqual(Buffer.from(expectedSignature, 'hex'), Buffer.from(receivedSignature, 'hex'))) {
+          throw new Error('Invalid test webhook signature');
+        }
+      }
+      return true;
+    })
   ], async (req, res) => {
     try {
       const errors = validationResult(req);
