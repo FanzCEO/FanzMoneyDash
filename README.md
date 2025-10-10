@@ -36,6 +36,27 @@ A state-of-the-art financial management system built specifically for the FANZ e
 - **Instant Notifications**: Real-time alerts and updates
 - **Multi-User Sync**: Synchronized data across devices
 
+## 🔐 Security
+
+### Security Features
+- **Zero Vulnerabilities**: All npm security vulnerabilities resolved (npm audit: 0 issues)
+- **Secure Dependencies**: Updated to latest secure versions
+  - `nodemailer@latest` - Fixed email domain interpretation vulnerabilities
+  - `exceljs` - Replaced vulnerable `xlsx` package to eliminate prototype pollution and ReDoS attacks
+- **JWT Authentication**: Secure token-based authentication
+- **Input Validation**: Comprehensive request validation using Joi
+- **Rate Limiting**: API rate limiting to prevent abuse
+- **Helmet.js**: Security headers and middleware
+- **CORS Configuration**: Proper cross-origin resource sharing
+- **Session Management**: Secure session handling with Redis
+- **Data Encryption**: Sensitive data encryption at rest and in transit
+
+### Security Auditing
+- Regular security audits with `npm audit`
+- Dependency vulnerability monitoring
+- Automated security scanning in CI/CD pipeline
+- Security-first development approach
+
 ## 🛠 Technology Stack
 
 ### Backend
