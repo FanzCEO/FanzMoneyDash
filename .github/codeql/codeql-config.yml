@@ -1,0 +1,45 @@
+name: "FANZ MoneyDash CodeQL Config"
+
+# Paths to include in analysis
+paths:
+  - "src"
+  - "frontend/src"
+
+# Paths to ignore
+paths-ignore:
+  - "node_modules"
+  - "dist"
+  - "build"
+  - "coverage"
+  - "*.test.js"
+  - "*.spec.js"
+  - "**/__tests__/**"
+  - "**/__mocks__/**"
+
+# Enable all built-in queries
+queries:
+  - uses: security-and-quality
+  - uses: security-extended
+  
+# Additional query suites for enhanced security
+query-filters:
+  - exclude:
+      id: js/unused-local-variable
+  - exclude:
+      id: js/debugger-statement
+  - include:
+      tags:
+        - security
+        - external/cwe/cwe-079  # Cross-site scripting
+        - external/cwe/cwe-089  # SQL injection  
+        - external/cwe/cwe-352  # CSRF
+        - external/cwe/cwe-094  # Code injection
+        - external/cwe/cwe-798  # Hard-coded credentials
+        - external/cwe/cwe-611  # XXE
+        - external/cwe/cwe-918  # SSRF
+
+# Compilation database settings for JavaScript
+disable-default-path-filters: false
+
+# Enable experimental features for better analysis
+enable-experimental-features: true

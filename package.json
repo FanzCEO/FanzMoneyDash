@@ -36,7 +36,7 @@
     "npm": ">=10.0.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs-node": "^4.10.0",
+    "@tensorflow/tfjs-node": "4.22.0",
     "axios": "^1.12.2",
     "bcryptjs": "^2.4.3",
     "compression": "^1.7.4",
@@ -61,12 +61,12 @@
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.9.3",
     "redis": "^4.6.8",
-    "sharp": "^0.32.5",
+    "sharp": "0.33.5",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "stripe": "^17.7.0",
     "uuid": "^9.0.0",
-    "web3": "^4.1.1",
+    "web3": "4.16.0",
     "winston": "^3.10.0"
   },
   "devDependencies": {
