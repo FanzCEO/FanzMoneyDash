@@ -85,7 +85,7 @@ jobs:
         docker push registry.digitalocean.com/fanz-registry/money-dash:${{ github.sha }}
 
     - name: Deploy to DigitalOcean Droplet
-      uses: appleboy/ssh-action@v1.0.3
+      uses: appleboy/ssh-action@v1.2.2
       with:
         host: ${{ secrets.DO_HOST }}
         username: ${{ secrets.DO_USERNAME }}
@@ -140,7 +140,7 @@ jobs:
     
     steps:
     - name: Rollback deployment
-      uses: appleboy/ssh-action@v1.0.3
+      uses: appleboy/ssh-action@v1.2.2
       with:
         host: ${{ secrets.DO_HOST }}
         username: ${{ secrets.DO_USERNAME }}
