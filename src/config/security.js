@@ -225,7 +225,7 @@ export const securityMiddleware = {
   // Log suspicious activity
   logSuspicious: (req, res, next) => {
     const suspiciousPatterns = [
-      /(\.\./|\.\.\\)/g, // Directory traversal
+      /\.\./g, // Directory traversal
       /<script/gi, // XSS attempts
       /union.*select/gi, // SQL injection
       /javascript:/gi, // JavaScript injection
